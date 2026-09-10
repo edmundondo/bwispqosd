@@ -17,10 +17,21 @@ README for details.
 
 ## What's different about this site (v1 scope)
 
-- **English only.** The Zimbabwe site's multi-language community-translation feature
-  exists in the code (so a language can be added later without a rebuild) but no
-  language besides English is populated yet — this is a deliberate v1 scope cut, not
-  a bug.
+- **Language chips: English + Setswana + Kalanga + Shona + Ndebele, with four more
+  present but blank.** English is Botswana's sole official language; Setswana is the
+  national language; Kalanga (TjiKalanga), Kgalagadi, Shona, Mbukushu, Ndebele, Tshwa
+  and !Xóõ are all recognised languages (source: "Languages of Botswana", Wikipedia,
+  checked 2026-09-10 — not a constitutional list the way Zimbabwe's 16 languages are).
+  Setswana, Kalanga, Shona and Ndebele ship with real best-effort-draft translations,
+  because they're literally the same standard languages already drafted for the
+  Zimbabwe site (Setswana/Tswana, TjiKalanga/Kalanga, ChiShona/Shona, IsiNdebele/
+  Ndebele) — reused rather than re-fabricated, still unreviewed, still flagged with
+  the same "🚧 need translation" badge wherever a string hasn't been checked.
+  Kgalagadi, Mbukushu, Tshwa and !Xóõ have no cross-border shortcut and no verified
+  source yet, so their chips exist and fall back cleanly to English rather than being
+  guessed — the same "intentionally blank" pattern Zimbabwe uses for Chibarwe,
+  Khoisan/Tjwao, Nambya and Ndau. Community translation via the suggest/endorse flow
+  works for all nine languages today.
 - **No backbone (RIPEstat/ASN) badges.** `ISP_ASN` is intentionally empty — no
   verified ASN-to-operator mapping has been compiled for Botswana yet. The badge
   simply doesn't render for any ISP without an entry, the same graceful fallback the
