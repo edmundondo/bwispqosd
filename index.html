@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="1.1.0">
+<meta name="app-version" content="1.2.0">
 <title>Botswana ISP Tracker</title>
 <style>
   :root{
@@ -133,11 +133,17 @@
   .pill.estimated{background:rgba(232,185,63,.15);color:var(--yellow);border-color:rgba(232,185,63,.35);}
   .pill.unconfirmed{background:rgba(92,107,128,.18);color:var(--grey);border-color:rgba(92,107,128,.4);}
 
+  /* Auto-height expand/collapse via CSS grid (0fr -> 1fr): sizes to whatever the
+     content actually needs on any device, instead of clipping anything past a fixed
+     pixel cap (a fixed max-height used to silently cut off the bottom of tall detail
+     panels — e.g. the submit button below a long rating form — with no way to reach
+     the clipped part, since overflow was hidden and it wasn't just a page-scroll issue). */
   .detail{
-    max-height:0;overflow:hidden;transition:max-height .3s ease;
+    display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .3s ease;
   }
-  .row.open .detail{max-height:1200px;margin-top:12px;}
+  .row.open .detail{grid-template-rows:1fr;margin-top:12px;}
   .detail-inner{
+    min-height:0;overflow:hidden;
     border-top:1px solid var(--border);padding-top:12px;font-size:13px;color:#c3cddb;line-height:1.55;
   }
   .detail-inner .src{color:var(--muted);font-size:12px;margin-top:8px;display:block;}
@@ -387,7 +393,8 @@
     .row{border:1px solid #ccc;break-inside:avoid;}
     .pill{border:1px solid #999;}
     .caret{display:none;}
-    .row .detail{max-height:none!important;margin-top:8px!important;}
+    .row .detail{grid-template-rows:1fr!important;margin-top:8px!important;}
+    .row .detail-inner{overflow:visible!important;}
     .qos-actions,.rate-form,.impact-form-card,.status-report-form,.speed-report-form{display:none!important;}
   }
 </style>
@@ -528,6 +535,7 @@
         <div class="loc-row" style="margin-top:12px;">
           <button class="btn small" id="impactLocBtn" type="button">📍 <span id="impactLocLabel">Use my location</span></button>
           <select class="city-select" id="impactCitySelect"><option value="">…</option></select>
+          <select class="city-select" id="impactAreaSelect"><option value="">…</option></select>
         </div>
         <div class="loc-status" id="impactLocStatus"></div>
         <textarea class="comment-box" id="impactComment" maxlength="500" style="margin-top:10px;" placeholder="Optional: tell us more…"></textarea>
@@ -594,7 +602,7 @@
       <span class="matokipedo-tagline">Live infrastructure monitoring by Matokipedo</span>
     </div>
     <span class="reset-link" id="resetQos">refresh / reset local data</span>
-    <div style="font-size:11px;color:var(--muted);margin-top:6px;">v1.1.0 &middot; <a href="CHANGELOG.md" style="color:inherit;">changelog</a></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">v1.2.0 &middot; <a href="CHANGELOG.md" style="color:inherit;">changelog</a></div>
   </footer>
 </div>
 
@@ -831,6 +839,8 @@ const I18N = {
     your_rating: "Your rating",
     btn_use_location: "Use my location",
     city_manual: "…or choose city manually",
+    area_manual: "Area / suburb (optional)",
+    area_none: "Whole city / not sure",
     comment_placeholder: "Optional: describe your experience (speed, reliability, outages)…",
     btn_submit_rating: "Submit rating",
     no_ratings_yet: "No ratings yet",
@@ -1397,6 +1407,40 @@ const CITIES = [
   {name:"Ghanzi", lat:-21.5667, lon:21.7833}
 ];
 
+/* Per-city sourcing notes (area/suburb data), for the record:
+   - Gaborone: Strong, near-exhaustive coverage from five sourcing streams cross-checked against each other: the Wikipedia Gaborone city article; the five current Gaborone City Council parliamentary-constituency Wikipedia articles (Gaborone Central, Gaborone North, Gaborone South, Gaborone Bonnington North, Gaborone Bonnington South), each of which lists the named wards/localities it 'encompasses'; the Independent Electoral Commission's official 2024 polling-station list (iec.gov.bw); and Seeff Botswana's real-estate area-profile pages for Gaborone. High confidence — most names (e.g. Broadhurst, Village, Tsholofelo, Phakalane, Block 8, Old Naledi) appear in 2+ independent sources. Satellite settlements administratively distinct from Gaborone (Mogoditshane, Tlokweng, Ramotswa, Mochudi, Gabane) were deliberately excluded even though colloquially 'Gaborone-adjacent', since they have their own local government structures.
+   - Francistown: Good coverage combining Wikipedia's Francistown city article, three Francistown parliamentary-constituency articles (East/West/South, which only gave generic 'Eastern/Western/Southern Francistown' rather than ward names), a peer-reviewed anthropological study ('Making sense of urban space in Francistown, Botswana: A study in urban symbolism', Quest journal) that names historical townships and residential zones, and the IEC's 2024 polling-station list. Moderate-high confidence for named places like Aerodrome, Monarch, Somerset East/West, Satellite, White City, Donga (corroborated across sources); lower confidence for single-source polling-district names like Ntshe, Itekeng, Selolwe. Bare single-letter 'Area A/I/L/M/S/W' designations from the academic paper were excluded as too ambiguous for a resident-facing dropdown despite being real historical designations.
+   - Maun: Moderate coverage anchored by a 2024 peer-reviewed ScienceDirect study on invasive plant distribution 'in wards ... within Maun Village' which names Boseja, Kgosing, Botshabelo, Matlapana and New Disaneng as the town's administrative wards, cross-checked against a Botswana Daily News (government) article on Tawana Land Board plot allocation that lists Chanoga, Samedupi, Matsaudi, Polokabatho and Komana as areas 'to be treated as part of Maun'. Boseja is further corroborated by independent real-estate and hospitality listings. Wikipedia's Maun article and the Maun North/East/West constituency pages were checked but found to be dominated by distant rural villages (Makalamabedi, Toteng, Sehithwa, Khwai, Shorobe, etc., tens of km away) rather than town wards, so those were excluded to avoid conflating Maun town with the wider rural constituency.
+   - Kasane: Thin, honestly limited coverage. Wikipedia's Kasane article names no sub-town areas at all. The only verifiable named subdivisions found are 'Kasane North' and 'Kasane South' from the IEC's official 2024 polling-station list; the surrounding Chobe constituency's other polling districts (Chobe Enclave, Kazungula, Lesoma, Pandamatenga) are separate villages, not Kasane suburbs, and were excluded.
+   - Palapye: Good coverage from Wikipedia's Palapye article, which gives a population-by-Kgotla (ward) breakdown listing Serorome, Boikago, Madiba, Lotsane, Thomaditshotse, Khurumela, Boseja, Morupule, Mmaphula, Rebaeng, Kgaswe and Extension 1 through 11. This is independently cross-validated by the IEC's 2024 polling-station list, which repeats most of the same names (Khurumela, Morupule, Madiba, Serorome, Boikago, Lotsane, Mmaphula East/West/Central). Other IEC entries for the wider Palapye constituency (Radisele, Dibokwe, Makabi, Mogome-Mokgware) were excluded as they are separate outlying villages, not Palapye town wards.
+   - Serowe: Moderate coverage. Kgosing (the royal/chief's ward) and Swaneng are corroborated by the Wikipedia Serowe article; Basimane is confirmed by a ResearchGate archaeology paper ('The potential of analogy in post-processual archaeologies: A case study from Basimane ward, Serowe, Botswana'); Sunnyside, Manonnye, Thabala, Mogorosi and Moiyabana appear in both the Serowe South constituency Wikipedia article and the IEC's 2024 polling-station list. Motetshwane, Tidimalo, Dithowa, Dithojwane and Mabeleapudi come only from the IEC list (Serowe North) and carry lower single-source confidence. Paje and Mmashoro, which appear in the IEC list, were excluded because Wikipedia's Serowe article describes Paje as a separate settlement roughly 20km away, and the same pattern likely applies to Mmashoro, a known separate village.
+   - Molepolole: Very thin coverage — deliberately not padded. Wikipedia's Molepolole article and the Molepolole North/South constituency articles mostly name historical/archaeological Bakwena capital sites (Ntsweng, Kolobeng, Dimawe, Dithubaruba) that Wikipedia's own Ntsweng article confirms are a protected ruin/monument, not a current residential ward, or name outlying villages (Mmanoko, Gamodubu, Thebephatshwa, Mapharangwane) rather than Molepolole wards. The single area retained, Borakalalo, is corroborated by both a real-estate listing and an independent gazetteer (WorldPlaces) explicitly labelling it 'Borakalalo ward, Molepolole'. No reliable source was found naming Molepolole's other current residential wards (it likely has several, given a population over 60,000), so the list is left short rather than guessed at.
+   - Selebi-Phikwe: Good coverage from a single strong official source: the IEC's 2024 polling-station list, which — unlike Maun or Kasane — covers a constituency (Selebi-Phikwe East is described on Wikipedia as 'completely urban') so its polling districts map directly onto real Selebi-Phikwe township wards (Botshabelo, Ikageleng, Kopano, Leseding, Meriting, Bontleng, etc). Phikwe Industrial Area is added from the Wikipedia Selebi-Phikwe article. Confidence is good for existence of these named areas but single-sourced, so treat as solid rather than fully cross-validated.
+   - Mahalapye: Moderate coverage from the IEC's 2024 polling-station list only (Wikipedia's Mahalapye, Mahalapye East and Mahalapye West articles name no specific wards). Names retained are the ones with cohesive, town-like naming (Mahalapye North/Central/South, Boseja, Flowertown, Xhosa 1, Madiba, Dilaene, Ngakaagae, Tshikhinyega, Parwe); hyphenated multi-village polling-district names from the same list (e.g. 'Makwate-Kudumatse-Dovedale', 'Mookane-Mmaphashalala') were excluded as they clearly denote separate rural villages combined into one polling district, not Mahalapye town wards. Single-source, so treat with moderate confidence.
+   - Lobatse: Good coverage from a Botswana Daily News (government-run outlet) feature article, 'Lobatse: Town endowed with history', which explicitly lists Lobatse's residential areas as Boswelatlou, Delta, Thema, Thema 2, Pitikwe, Woodhall, Botoka, Peleng and Jacaranda. Peleng is independently corroborated as Lobatse's best-known and most historic residential area by a separate government publication, Kutlwano Magazine ('Peleng: The pinnacle of Lobatse').
+   - Ghanzi: No reliably sourced sub-town areas found — left empty rather than padded. Wikipedia's Ghanzi, Ghanzi District and Ghanzi constituency articles name no suburbs of Ghanzi town itself (only surrounding villages like East/West Hanahai, New Xade, which are distinct settlements). A single Facebook post referencing a 'Bosele Ward' address in Ghanzi, and a Daily News election-results item naming a 'Tshabantsa-Molapo' council ward of uncertain location within the wider Ghanzi constituency, were both excluded as insufficiently verified (single low-quality or ambiguous source) rather than included on faith.
+*/
+const AREAS = {
+  "Gaborone": ["Broadhurst", "Gaborone West", "Gaborone West Industrial", "Village", "Old Naledi", "New Naledi", "Phakalane", "Phakalane Golf Estate", "Bontleng", "Extension 2", "Extension 9", "Extension 39", "Gaborone North", "Gaborone Central", "Gaborone International Commerce Park", "Tsholofelo", "Tsholofelo East", "Tsholofelo South", "Block 3", "Block 5", "Block 8", "Block 10", "Kgale", "Kgale View", "Sentlhane", "Mokolodi 2", "Botswelelo", "Phologolo", "Madibeng", "Tshimotharo", "Ginger", "Maruapula", "Badiri", "Government Enclave", "Tawana", "Tshweneng", "Phiring", "Ledumang", "Phokoje", "Marapoathutwa", "Glen Valley", "Sebele", "Ledumadumane", "Selemela", "Dilalelo", "Old Industrial", "White City", "Boitshoko", "Mophato", "Babusi", "Segoditshane", "Taung", "Mabudisa Phase 1", "Ntloedibe Phase II", "Bokotelo", "Boseja Block 6", "Moroka Block 5", "Ditimamodimo Block 7", "Feya", "Difetlhamolelo Block 9", "Mafikana Phase 4", "Madirelo", "Mafatswa", "Legolo", "Boikhutso", "Notwane"],
+  "Francistown": ["Aerodrome", "Gerald Estates", "Somerset West", "Somerset East", "White City", "Monarch Central", "Monarch South", "Bluetown", "Masemenyenga", "Donga", "Block 2", "Block 7", "Riverside North", "Riverside South", "Tatitown", "Tati West", "Tati Riverside", "Minestone", "Central Area", "Satellite North", "Satellite South", "Government Camp", "Light Industrial Site", "Railway Quarters", "Ntshe", "Itekeng", "Selepa", "Ipopeng", "Phillip Matante West", "Phillip Matante East", "Ikageleng", "Tshwaragano", "Selolwe", "Botsalano", "Kanana", "Mophane", "Moselewapula"],
+  "Maun": ["Boseja", "Kgosing", "Botshabelo", "Matlapana", "New Disaneng", "Chanoga", "Samedupi", "Matsaudi", "Polokabatho", "Komana"],
+  "Kasane": ["Kasane North", "Kasane South"],
+  "Palapye": ["Serorome", "Boikago", "Madiba", "Lotsane", "Thomaditshotse", "Khurumela", "Boseja", "Morupule", "Mmaphula", "Rebaeng", "Kgaswe", "Extension 1", "Extension 2", "Extension 3", "Extension 4", "Extension 5", "Extension 6", "Extension 7", "Extension 8", "Extension 9", "Extension 10", "Extension 11"],
+  "Serowe": ["Kgosing", "Swaneng", "Basimane", "Sunnyside", "Manonnye", "Thabala", "Mogorosi", "Moiyabana", "Motetshwane", "Tidimalo", "Dithowa", "Dithojwane", "Mabeleapudi"],
+  "Molepolole": ["Borakalalo"],
+  "Selebi-Phikwe": ["Botshabelo Central", "Botshabelo West", "Botshabelo East", "Botshabelo South", "Ikageleng Phase 1", "Ikageleng Phase 2", "Newstance", "Kopano", "Leseding", "Thakadiawa", "Sesame-Kagiso", "Meriting", "Sesame-South", "Bontleng", "Phikwe Industrial Area"],
+  "Mahalapye": ["Xhosa 1", "Boseja", "Flowertown", "Mahalapye North", "Madiba", "Mahalapye Central", "Dilaene", "Ngakaagae", "Tshikhinyega", "Parwe", "Mahalapye South"],
+  "Lobatse": ["Peleng", "Woodhall", "Boswelatlou", "Delta", "Thema", "Thema 2", "Pitikwe", "Botoka", "Jacaranda"],
+  "Ghanzi": []
+};
+function areasForCity(cityName){ return AREAS[cityName] || []; }
+function areaOptionsHtml(cityName){
+  const areas = areasForCity(cityName);
+  const noneLabel = t("area_none");
+  if(!areas.length) return `<option value="">${t("area_manual")}</option>`;
+  return `<option value="">${noneLabel}</option>` + areas.map(a=>`<option value="${a}">${a}</option>`).join("");
+}
+
 const DAY = 24*60*60*1000;
 const nowTs = Date.now();
 const SEED_REPORTS = [
@@ -1867,7 +1911,7 @@ async function submitReport(report){
     try{
       const { error } = await supa.from("qos_reports").insert([{
         site: SITE_ID,
-        isp: report.isp, stars: report.stars, city: report.city, comment: report.comment,
+        isp: report.isp, stars: report.stars, city: report.city, area: report.area || null, comment: report.comment,
         device_id: SpamGuard.deviceId()
       }]);
       if(error) throw error;
@@ -1926,7 +1970,7 @@ async function submitStatus(entry){
     try{
       const { error } = await supa.from("status_reports").insert([{
         site: SITE_ID,
-        isp: entry.isp, city: entry.city, status: entry.status, comment: entry.comment,
+        isp: entry.isp, city: entry.city, area: entry.area || null, status: entry.status, comment: entry.comment,
         device_id: SpamGuard.deviceId()
       }]);
       if(error) throw error;
@@ -1948,7 +1992,7 @@ async function submitSpeed(entry){
   if(supa){
     const baseRow = {
       site: SITE_ID,
-      isp: entry.isp, city: entry.city, download_mbps: entry.download_mbps, upload_mbps: entry.upload_mbps, comment: entry.comment,
+      isp: entry.isp, city: entry.city, area: entry.area || null, download_mbps: entry.download_mbps, upload_mbps: entry.upload_mbps, comment: entry.comment,
       device_id: SpamGuard.deviceId()
     };
     // Richer columns from the built-in automatic speed test (v1.1.0+). If the
@@ -1994,7 +2038,7 @@ async function submitConversion(entry){
     try{
       const { error } = await supa.from("conversions").insert([{
         site: SITE_ID,
-        to_isp: entry.to_isp, from_isp: entry.from_isp, reasons: entry.reasons, city: entry.city, comment: entry.comment,
+        to_isp: entry.to_isp, from_isp: entry.from_isp, reasons: entry.reasons, city: entry.city, area: entry.area || null, comment: entry.comment,
         device_id: SpamGuard.deviceId()
       }]);
       if(error) throw error;
@@ -2085,6 +2129,8 @@ function applyStaticTranslations(){
 
   const impactCitySelect = document.getElementById("impactCitySelect");
   impactCitySelect.innerHTML = `<option value="">${t("city_manual")}</option>` + CITIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join("");
+  const impactAreaSelectInit = document.getElementById("impactAreaSelect");
+  if(impactAreaSelectInit && impactAreaSelectInit.options.length <= 1) impactAreaSelectInit.innerHTML = areaOptionsHtml(impactCitySelect.value);
 
   document.getElementById("simpleModeLabel").textContent = document.body.classList.contains("simple-mode") ? t("simple_mode_on") : t("simple_mode_off");
 
@@ -2393,6 +2439,9 @@ function renderList(){
                   <option value="">${t("city_manual")}</option>
                   ${CITIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join("")}
                 </select>
+                <select class="city-select" data-role="statusAreaSelect">
+                  <option value="">${t("area_manual")}</option>
+                </select>
               </div>
               <div class="loc-status" data-role="statusLocStatus"></div>
               <textarea class="comment-box" data-role="statusCommentBox" maxlength="500" placeholder="${t("comment_placeholder")}"></textarea>
@@ -2432,6 +2481,9 @@ function renderList(){
                   <option value="">${t("city_manual")}</option>
                   ${CITIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join("")}
                 </select>
+                <select class="city-select" data-role="speedAreaSelect">
+                  <option value="">${t("area_manual")}</option>
+                </select>
               </div>
               <div class="loc-status" data-role="speedLocStatus"></div>
               <textarea class="comment-box" data-role="speedCommentBox" maxlength="500" placeholder="${t("comment_placeholder")}"></textarea>
@@ -2462,6 +2514,9 @@ function renderList(){
                 <select class="city-select" data-role="citySelect">
                   <option value="">${t("city_manual")}</option>
                   ${CITIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join("")}
+                </select>
+                <select class="city-select" data-role="areaSelect">
+                  <option value="">${t("area_manual")}</option>
                 </select>
               </div>
               <div class="loc-status" data-role="locStatus"></div>
@@ -2517,6 +2572,7 @@ function renderList(){
     const locBtn = rowEl.querySelector('[data-role="locBtn"]');
     const locStatus = rowEl.querySelector('[data-role="locStatus"]');
     const citySelect = rowEl.querySelector('[data-role="citySelect"]');
+    const areaSelect = rowEl.querySelector('[data-role="areaSelect"]');
 
     locBtn.addEventListener("click",(e)=>{
       e.stopPropagation();
@@ -2530,6 +2586,8 @@ function renderList(){
         const { city, distanceKm } = nearestCity(latitude, longitude);
         rateForm.dataset.city = city;
         citySelect.value = city;
+        delete rateForm.dataset.area;
+        if(areaSelect) areaSelect.innerHTML = areaOptionsHtml(city);
         locStatus.textContent = "📍 Nearest tracked city: "+city+" (~"+distanceKm+" km away)";
       }, err=>{
         locStatus.textContent = "Couldn't get your location (" + err.message + ") — pick a city manually.";
@@ -2539,6 +2597,14 @@ function renderList(){
     citySelect.addEventListener("click", (e)=> e.stopPropagation());
     citySelect.addEventListener("change",(e)=>{
       rateForm.dataset.city = citySelect.value;
+      delete rateForm.dataset.area;
+      if(areaSelect) areaSelect.innerHTML = areaOptionsHtml(citySelect.value);
+    if(areaSelect){
+      areaSelect.addEventListener("click", (e)=> e.stopPropagation());
+      areaSelect.addEventListener("change",(e)=>{
+        rateForm.dataset.area = areaSelect.value;
+      });
+    }
       locStatus.textContent = citySelect.value ? "City set to "+citySelect.value : "";
     });
 
@@ -2565,8 +2631,9 @@ function renderList(){
         return;
       }
       const city = rateForm.dataset.city || "Unknown";
+      const area = rateForm.dataset.area || null;
       const phone = (phoneInput.value||"").trim();
-      submitReport({ isp:name, stars, comment:(commentBox.value||"").trim(), city, ts: Date.now() });
+      submitReport({ isp:name, stars, comment:(commentBox.value||"").trim(), city, area, ts: Date.now() });
       if(phone) upsertCustomer(phone, detectIspFromPhone(phone));
       phoneInput.value = ""; phoneHint.textContent = "";
     });
@@ -2606,6 +2673,7 @@ function renderList(){
     const statusLocBtn = rowEl.querySelector('[data-role="statusLocBtn"]');
     const statusLocStatus = rowEl.querySelector('[data-role="statusLocStatus"]');
     const statusCitySelect = rowEl.querySelector('[data-role="statusCitySelect"]');
+    const statusAreaSelect = rowEl.querySelector('[data-role="statusAreaSelect"]');
 
     statusLocBtn.addEventListener("click",(e)=>{
       e.stopPropagation();
@@ -2619,6 +2687,8 @@ function renderList(){
         const { city, distanceKm } = nearestCity(latitude, longitude);
         statusForm.dataset.city = city;
         statusCitySelect.value = city;
+        delete statusForm.dataset.area;
+        if(statusAreaSelect) statusAreaSelect.innerHTML = areaOptionsHtml(city);
         statusLocStatus.textContent = "📍 Nearest tracked city: "+city+" (~"+distanceKm+" km away)";
       }, err=>{
         statusLocStatus.textContent = "Couldn't get your location (" + err.message + ") — pick a city manually.";
@@ -2628,6 +2698,14 @@ function renderList(){
     statusCitySelect.addEventListener("click", (e)=> e.stopPropagation());
     statusCitySelect.addEventListener("change",(e)=>{
       statusForm.dataset.city = statusCitySelect.value;
+      delete statusForm.dataset.area;
+      if(statusAreaSelect) statusAreaSelect.innerHTML = areaOptionsHtml(statusCitySelect.value);
+    if(statusAreaSelect){
+      statusAreaSelect.addEventListener("click", (e)=> e.stopPropagation());
+      statusAreaSelect.addEventListener("change",(e)=>{
+        statusForm.dataset.area = statusAreaSelect.value;
+      });
+    }
       statusLocStatus.textContent = statusCitySelect.value ? "City set to "+statusCitySelect.value : "";
     });
 
@@ -2643,7 +2721,8 @@ function renderList(){
         return;
       }
       const city = statusForm.dataset.city || "Unknown";
-      submitStatus({ isp:name, city, status, comment:(statusCommentBox.value||"").trim(), ts: Date.now() });
+      const area = statusForm.dataset.area || null;
+      submitStatus({ isp:name, city, area, status, comment:(statusCommentBox.value||"").trim(), ts: Date.now() });
       statusForm.dataset.status = "";
       statusChoices.querySelectorAll(".status-choice").forEach(b=>b.classList.remove("active"));
       statusCommentBox.value = "";
@@ -2664,6 +2743,7 @@ function renderList(){
     const speedLocBtn = rowEl.querySelector('[data-role="speedLocBtn"]');
     const speedLocStatus = rowEl.querySelector('[data-role="speedLocStatus"]');
     const speedCitySelect = rowEl.querySelector('[data-role="speedCitySelect"]');
+    const speedAreaSelect = rowEl.querySelector('[data-role="speedAreaSelect"]');
 
     speedLocBtn.addEventListener("click",(e)=>{
       e.stopPropagation();
@@ -2677,6 +2757,8 @@ function renderList(){
         const { city, distanceKm } = nearestCity(latitude, longitude);
         speedForm.dataset.city = city;
         speedCitySelect.value = city;
+        delete speedForm.dataset.area;
+        if(speedAreaSelect) speedAreaSelect.innerHTML = areaOptionsHtml(city);
         speedLocStatus.textContent = "📍 Nearest tracked city: "+city+" (~"+distanceKm+" km away)";
       }, err=>{
         speedLocStatus.textContent = "Couldn't get your location (" + err.message + ") — pick a city manually.";
@@ -2686,6 +2768,14 @@ function renderList(){
     speedCitySelect.addEventListener("click", (e)=> e.stopPropagation());
     speedCitySelect.addEventListener("change",(e)=>{
       speedForm.dataset.city = speedCitySelect.value;
+      delete speedForm.dataset.area;
+      if(speedAreaSelect) speedAreaSelect.innerHTML = areaOptionsHtml(speedCitySelect.value);
+    if(speedAreaSelect){
+      speedAreaSelect.addEventListener("click", (e)=> e.stopPropagation());
+      speedAreaSelect.addEventListener("change",(e)=>{
+        speedForm.dataset.area = speedAreaSelect.value;
+      });
+    }
       speedLocStatus.textContent = speedCitySelect.value ? "City set to "+speedCitySelect.value : "";
     });
 
@@ -2716,10 +2806,11 @@ function renderList(){
         return;
       }
       const city = speedForm.dataset.city || "Unknown";
+      const area = speedForm.dataset.area || null;
       let extra = {};
       try{ extra = rowEl.dataset.speedExtra ? JSON.parse(rowEl.dataset.speedExtra) : {}; }catch(parseErr){}
       submitSpeed({
-        isp:name, city, download_mbps: downloadVal, upload_mbps: uploadVal,
+        isp:name, city, area, download_mbps: downloadVal, upload_mbps: uploadVal,
         comment:(speedCommentBox.value||"").trim(), ts: Date.now(),
         test_method: extra.test_method || "manual",
         latency_idle_ms: extra.latency_idle_ms ?? null,
@@ -2993,6 +3084,7 @@ document.getElementById("suggestSubmitBtn").addEventListener("click", ()=>{
 document.getElementById("impactLocBtn").addEventListener("click", ()=>{
   const status = document.getElementById("impactLocStatus");
   const citySelect = document.getElementById("impactCitySelect");
+  const areaSelect = document.getElementById("impactAreaSelect");
   if(!navigator.geolocation){
     status.textContent = "Geolocation isn't supported here — pick a city manually.";
     return;
@@ -3002,6 +3094,9 @@ document.getElementById("impactLocBtn").addEventListener("click", ()=>{
     const { latitude, longitude } = pos.coords;
     const { city, distanceKm } = nearestCity(latitude, longitude);
     citySelect.value = city;
+    // Geolocation only ever resolves to a tracked city, never an area — the tester
+    // still picks their own area/suburb by hand (or leaves it blank).
+    if(areaSelect) areaSelect.innerHTML = areaOptionsHtml(city);
     status.textContent = "📍 Nearest tracked city: "+city+" (~"+distanceKm+" km away)";
   }, err=>{
     status.textContent = "Couldn't get your location (" + err.message + ") — pick a city manually.";
@@ -3033,6 +3128,11 @@ document.getElementById("impactPhone").addEventListener("input", ()=>{
 document.getElementById("impactSubmitBtn").addEventListener("click", ()=>{
   const toIsp = document.getElementById("impactToIsp").value;
   const fromIsp = document.getElementById("impactFromIsp").value || null;
+  document.getElementById("impactCitySelect").addEventListener("change", ()=>{
+  const areaSelect = document.getElementById("impactAreaSelect");
+  if(areaSelect) areaSelect.innerHTML = areaOptionsHtml(document.getElementById("impactCitySelect").value);
+});
+
   const city = document.getElementById("impactCitySelect").value || "Unknown";
   const comment = document.getElementById("impactComment").value.trim();
   const reasons = Array.from(document.querySelectorAll('[data-role="reasonCheck"]:checked')).map(el=>el.value);
@@ -3040,7 +3140,8 @@ document.getElementById("impactSubmitBtn").addEventListener("click", ()=>{
   const phone = document.getElementById("impactPhone").value.trim();
   if(!toIsp){ status.textContent = "Please choose which ISP you switched to / signed up with."; return; }
   if(!phone || !isValidPhone(phone)){ status.textContent = t("phone_required_note"); return; }
-  submitConversion({ to_isp: toIsp, from_isp: fromIsp, reasons, city, comment, ts: Date.now() });
+  const area = document.getElementById("impactAreaSelect").value || null;
+  submitConversion({ to_isp: toIsp, from_isp: fromIsp, reasons, city, area, comment, ts: Date.now() });
   upsertCustomer(phone, detectIspFromPhone(phone));
   document.getElementById("impactComment").value = "";
   document.getElementById("impactPhone").value = "";
