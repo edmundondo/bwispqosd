@@ -7,6 +7,20 @@ follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 The version number shown here matches the `<meta name="app-version">` tag in
 `index.html` and the `v{version}` badge in the page's footer.
 
+## [1.2.1] — 2026-09-18
+
+### Fixed
+- **Critical: every report submitted through this site was being silently recorded under
+  Zimbabwe's data (`site: "zw"`), not Botswana's own (`site: "bw"`)** — `SITE_ID` was left over
+  from the file this repo was originally templated from and was never updated. Every QoS rating,
+  live-status report, speed test, conversion, translation suggestion and referral click submitted
+  here since this site launched (2026-09-10) went into the shared database tagged as Zimbabwean
+  data, invisible to Botswana's own admin panel. Checked the live database directly: nothing real
+  was actually miscategorized by this (the only `site: "zw"` rows found are genuinely
+  Zimbabwe-specific — Harare/Chegutu, Zimbabwean ISPs — so no real Botswana submissions have been
+  lost or need re-attribution), but the bug was live in production and would have silently
+  swallowed the first real tester submission. Fixed: `SITE_ID` now correctly reads `"bw"`.
+
 ## [1.2.0] — 2026-09-17
 
 ### Fixed
