@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="1.5.1">
+<meta name="app-version" content="1.6.0">
 <title>Botswana ISP Tracker</title>
+<meta name="description" content="Independent, crowdsourced quality ratings, outage reports and speed tests for BOCRA-licensed internet providers in Botswana. A Matokipedo project, not affiliated with BOCRA or any provider.">
 <style>
   :root{
     --bg:#0b0f14;
@@ -431,12 +432,12 @@
 </script>
 <div class="wrap">
   <header>
-    <div class="eyebrow">BOCRA · Botswana Telecoms</div>
+    <div class="eyebrow">Independent tracker · BOCRA-licensed providers</div>
     <h1>Botswana ISP Tracker</h1>
-    <div class="sub">5 tracked providers · mobile &amp; fixed/fibre internet access · last synced from BOCRA's 2024 Annual Report (period to March 2024) and operators' own results</div>
+    <div class="sub">5 tracked providers · mobile &amp; fixed/fibre internet access · provider figures from BOCRA's 2025 Annual Report (period to March 2025) and operators' own results</div>
     <div><span class="privacy-note">📍 Your GPS location is only used in your browser to work out the nearest tracked city — raw coordinates are never sent anywhere. Only the city name, star rating and comment are shared.</span></div>
     <div><span class="privacy-note">📱 On an older phone, a dot-matrix screen, or a slow connection? <a href="lite.html" style="color:inherit;">Try the no-script Lite version</a> — tiny download, works without JavaScript, includes an SMS rating option.</span></div>
-    <div><span class="backend-banner mode-local" id="backendBanner">🟡 Local demo mode — connect a free Supabase backend to make ratings shared (see README.md)</span></div>
+    <div><span class="backend-banner mode-connecting" id="backendBanner">⏳ Connecting to shared backend…</span></div>
     <div id="iodaBadge"></div>
     <div class="status-legend" id="statusLegend">
       <span class="legend-item"><span class="status-dot" style="background:var(--green)"></span> <span id="legendLiveLabel">Live</span></span>
@@ -611,8 +612,9 @@
       <img src="matokipedo-logo.jpg" alt="Matokipedo logo" class="matokipedo-logo">
       <span class="matokipedo-tagline">Live infrastructure monitoring by Matokipedo</span>
     </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">Independent project — not affiliated with or endorsed by BOCRA or any provider listed.</div>
     <span class="reset-link" id="resetQos">refresh / reset local data</span>
-    <div style="font-size:11px;color:var(--muted);margin-top:6px;">v1.5.1 &middot; <a href="CHANGELOG.md" style="color:inherit;">changelog</a></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">v1.6.0 &middot; <a href="CHANGELOG.md" style="color:inherit;">changelog</a></div>
   </footer>
 </div>
 
@@ -843,7 +845,7 @@ const I18N = {
   en: {
     lang_label: "Language",
     translate_help: "Help translate / suggest a correction",
-    banner_local: "🟡 Local demo mode — connect a free Supabase backend to make ratings shared (see README.md)",
+    banner_local: "🔴 Couldn't reach the shared backend — showing locally cached data only",
     banner_connecting: "⏳ Connecting to shared backend…",
     banner_live: "🟢 Connected — ratings are shared with every visitor (Supabase)",
     banner_error: "🔴 Couldn't reach the shared backend — showing locally cached data only",
@@ -938,7 +940,7 @@ const I18N = {
   tn: { // Setswana — best-effort draft, unreviewed; shared with the Zimbabwe site's Tswana content (same language)
     lang_label: "Puo",
     translate_help: "Thusa go ranola / tshitsa phoso",
-    banner_local: "🟡 Tekanyo ya lefelo — golaganya Supabase (mahala) go abelana data (bona README.md)",
+    banner_local: "🔴 Go paletswe go fitlha kwa networking e e abelanwang — go bontsha data e e bolokilweng mo browser fela",
     banner_connecting: "⏳ E golaganya le network e e abelanwang…",
     banner_live: "🟢 E golaganeditswe — dipego di abelanwa le baeng botlhe (Supabase)",
     banner_error: "🔴 Go paletswe go fitlha kwa networking e e abelanwang — go bontsha data e e bolokilweng mo browser fela",
@@ -1001,7 +1003,7 @@ const I18N = {
   kck: { // Kalanga — best-effort draft, unreviewed; shared with the Zimbabwe site's TjiKalanga content (same language, spoken on both sides of the border)
     lang_label: "Mulaka",
     translate_help: "Batsira kubudulula / nyika kulungiswa",
-    banner_local: "🟡 Modhi yekumusha — bhatanidza Supabase (mahala) kuti dhata igovanwe (ona README.md)",
+    banner_local: "🔴 Kwakundikana kusvika ku network inogovanwa — kuratidza dhata yakachengetwa mubhurawuza iyi bedzi",
     banner_connecting: "⏳ Kubhatana ne network inogovanwa…",
     banner_live: "🟢 Yabhatana — dhata inogovanwa nevaeni vose (Supabase)",
     banner_error: "🔴 Kwakundikana kusvika ku network inogovanwa — kuratidza dhata yakachengetwa mubhurawuza iyi bedzi",
@@ -1064,7 +1066,7 @@ const I18N = {
   sn: { // Shona — best-effort draft, unreviewed; shared with the Zimbabwe site's ChiShona content (same language)
     lang_label: "Mutauro",
     translate_help: "Batsira Kushandura / Ipa Ndudziro Iri Nani",
-    banner_local: "🟡 Modhi yepaduku — batanidza Supabase (mahara) kuti data igoverwe (ona README.md)",
+    banner_local: "🔴 Zvatadza kubatana ne-network yakagoverwa — zviri kuratidza data yakachengetwa pane iyi bhurawuza chete",
     banner_connecting: "⏳ Kubatana ne-network yakagoverwa…",
     banner_live: "🟢 Zvabatana — data iri kugoverwa nevashandisi vose (Supabase)",
     banner_error: "🔴 Zvatadza kubatana ne-network yakagoverwa — zviri kuratidza data yakachengetwa pane iyi bhurawuza chete",
@@ -1127,7 +1129,7 @@ const I18N = {
   nd: { // Ndebele — best-effort draft, unreviewed; shared with the Zimbabwe site's IsiNdebele content (same language)
     lang_label: "Ulimi",
     translate_help: "Siza Ukuhumutsha / Phakamisa Ukulungiswa",
-    banner_local: "🟡 Imodi Yasendlalelo — xhuma i-Supabase (yamahhala) ukuze idatha yabelwane (bona README.md)",
+    banner_local: "🔴 Kwehlulekile ukufinyelela kunethiwekhi eyabelwene — kutshengiswa idatha egcinwe kulesi siphequluli kuphela",
     banner_connecting: "⏳ Iyaxhumana lenethiwekhi eyabiwe…",
     banner_live: "🟢 Kuxhunyiwe — idatha iyabelwana labo bonke abavakashi (Supabase)",
     banner_error: "🔴 Kwehlulekile ukufinyelela kunethiwekhi eyabelwene — kutshengiswa idatha egcinwe kulesi siphequluli kuphela",
@@ -1234,19 +1236,19 @@ const DATA = [
     name: "Orange Botswana",
     type: "Mobile",
     subscribers: null,
-    subLabel: "43% of mobile subscriptions (BOCRA-published share)",
+    subLabel: "46% of mobile subscriptions (BOCRA-published share)",
     status: "confirmed",
-    note: "Botswana's largest mobile operator by subscriber share as of March 2024 — the first time Orange has led the market since launch. Majority-owned (69%) by Orange S.A. (France), with the remainder held by a local investor consortium.",
-    source: "BOCRA 2024 Annual Report (period to March 2024)"
+    note: "Botswana's largest mobile operator by subscriber share — 46% as of March 2025, up from 43% a year earlier, when Orange first overtook Mascom. Majority-owned (69%) by Orange S.A. (France), with the remainder held by a local investor consortium.",
+    source: "BOCRA 2025 Annual Report (period to March 2025)"
   },
   {
     name: "Mascom Wireless",
     type: "Mobile",
     subscribers: null,
-    subLabel: "42% of mobile subscriptions (BOCRA-published share)",
+    subLabel: "40% of mobile subscriptions (BOCRA-published share)",
     status: "confirmed",
-    note: "Botswana's second-largest mobile operator by subscriber share as of March 2024. Owned 60% by the Botswana Public Officers Pensions Fund and 40% by Econet Wireless. Was the first operator to launch 5G in Botswana (Gaborone, February 2022).",
-    source: "BOCRA 2024 Annual Report (period to March 2024)"
+    note: "Botswana's second-largest mobile operator by subscriber share — 40% as of March 2025, down from 42% a year earlier. Owned 60% by the Botswana Public Officers Pensions Fund and 40% by Econet Wireless. Was the first operator to launch 5G in Botswana (Gaborone, February 2022).",
+    source: "BOCRA 2025 Annual Report (period to March 2025)"
   },
   {
     name: "BTC Mobile (BeMobile)",
@@ -1254,17 +1256,17 @@ const DATA = [
     subscribers: 757529,
     subLabel: "active mobile subscribers (company-reported, FY2026)",
     status: "estimated",
-    note: "State-linked operator (majority government-owned via the BSE-listed Botswana Telecommunications Corporation) held 15% of the mobile subscriber market per BOCRA as of March 2024. Its own FY2026 results separately reported 757,529 active mobile subscribers, up 30% year-on-year — a later reporting period than the BOCRA share figure, so the two numbers aren't directly comparable.",
-    source: "BOCRA 2024 Annual Report; BTC FY2026 results via BW TechZone (Aug 2026)"
+    note: "State-linked operator (majority government-owned via the BSE-listed Botswana Telecommunications Corporation) held 14% of the mobile subscriber market per BOCRA as of March 2025 (15% a year earlier). Its own FY2026 results separately reported 757,529 active mobile subscribers, up 30% year-on-year — a later reporting period than the BOCRA share figure, so the two numbers aren't directly comparable.",
+    source: "BOCRA 2025 Annual Report; BTC FY2026 results via BW TechZone (Aug 2026)"
   },
   {
     name: "Starlink",
     type: "Fixed/Wireless",
     subscribers: 8075,
     subLabel: "satellite broadband customers",
-    status: "estimated",
-    note: "Satellite internet service, commercially launched in Botswana in August 2024 after BOCRA licensing. Reported at roughly 8,075 customers (about 3.9% of fixed broadband connections) as of BOCRA's most recent annual report, via press reporting — not independently verified against the primary BOCRA table.",
-    source: "BOCRA Annual Report data, via BW TechZone (2026)"
+    status: "confirmed",
+    note: "Satellite internet service, commercially launched in Botswana in August 2024 after BOCRA licensing. BOCRA reports 8,075 Starlink satellite connections as of March 2025 — 3.89% of Botswana's 207,702 fixed broadband subscriptions.",
+    source: "BOCRA 2025 Annual Report (period to March 2025)"
   },
   {
     name: "Independent ISPs",
